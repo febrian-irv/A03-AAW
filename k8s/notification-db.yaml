@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-db
+  namespace: suilens-2206083584
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-db
+  template:
+    metadata:
+      labels:
+        app: notification-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: notifications
+            - name: POSTGRES_PASSWORD
+              value: notifications
+            - name: POSTGRES_DB
+              value: notifications
+          volumeMounts:
+            - name: notification-pgdata
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: notification-pgdata
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-db
+  namespace: suilens-2206083584
+spec:
+  selector:
+    app: notification-db
+  ports:
+    - port: 5432
+      targetPort: 5432

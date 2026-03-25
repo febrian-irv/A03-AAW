@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
 import { cors } from "@elysiajs/cors";
+import { swagger } from "@elysiajs/swagger";
 import { db } from "./db";
 import { orders } from "./db/schema";
 import { eq } from "drizzle-orm";
@@ -17,6 +18,22 @@ interface CatalogLens {
 
 const app = new Elysia()
   .use(cors())
+  .use(
+    swagger({
+      documentation: {
+        info: {
+          title: "SuiLens Order Service API",
+          version: "1.0.0",
+          description:
+            "API for managing lens rental orders in the SuiLens platform",
+        },
+        tags: [
+          { name: "Orders", description: "Order management endpoints" },
+          { name: "Health", description: "Service health check" },
+        ],
+      },
+    })
+  )
   .post(
     "/api/orders",
     async ({ body }) => {
@@ -77,15 +94,42 @@ const app = new Elysia()
     },
     {
       body: t.Object({
-        customerName: t.String(),
-        customerEmail: t.String({ format: "email" }),
-        lensId: t.String({ format: "uuid" }),
-        startDate: t.String(),
-        endDate: t.String(),
+        customerName: t.String({ description: "Customer full name" }),
+        customerEmail: t.String({
+          format: "email",
+          description: "Customer email address",
+        }),
+        lensId: t.String({
+          format: "uuid",
+          description: "UUID of the lens to rent",
+        }),
+        startDate: t.String({ description: "Rental start date (ISO format)" }),
+        endDate: t.String({ description: "Rental end date (ISO format)" }),
       }),
+      detail: {
+        tags: ["Orders"],
+        summary: "Create a new order",
+        description:
+          "Create a new lens rental order. Validates lens availability via catalog service, calculates price, and publishes order.placed event.",
+        responses: {
+          201: { description: "Order created successfully" },
+          400: { description: "Invalid date range" },
+          404: { description: "Lens not found" },
+          500: { description: "Failed to create order" },
+        },
+      },
     },
   )
-  .get("/api/orders", async () => db.select().from(orders))
+  .get("/api/orders", async () => db.select().from(orders), {
+    detail: {
+      tags: ["Orders"],
+      summary: "Get all orders",
+      description: "Retrieve a list of all orders",
+      responses: {
+        200: { description: "List of orders retrieved successfully" },
+      },
+    },
+  })
   .get("/api/orders/:id", async ({ params }) => {
     const results = await db
       .select()
@@ -97,8 +141,27 @@ const app = new Elysia()
       });
     }
     return results[0];
+  }, {
+    params: t.Object({
+      id: t.String({ format: "uuid", description: "Order UUID" }),
+    }),
+    detail: {
+      tags: ["Orders"],
+      summary: "Get order by ID",
+      description: "Retrieve a specific order by its UUID",
+      responses: {
+        200: { description: "Order found" },
+        404: { description: "Order not found" },
+      },
+    },
   })
-  .get("/health", () => ({ status: "ok", service: "order-service" }))
+  .get("/health", () => ({ status: "ok", service: "order-service" }), {
+    detail: {
+      tags: ["Health"],
+      summary: "Health check",
+      description: "Check if the order service is running",
+    },
+  })
   .listen(3002);
 
 console.log(`Order Service running on port ${app.server?.port}`);

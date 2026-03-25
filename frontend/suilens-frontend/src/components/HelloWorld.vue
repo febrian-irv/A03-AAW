@@ -5,6 +5,16 @@
       <v-divider></v-divider>
 
       <v-card-text class="py-6" style="min-height: 500px">
+        <div class="d-flex align-center mb-4">
+          <v-chip
+            :color="connected ? 'green' : 'red'"
+            size="small"
+            variant="flat"
+          >
+            {{ connected ? "Connected" : "Disconnected" }}
+          </v-chip>
+        </div>
+
         <div
           v-if="notifications.length === 0"
           class="text-center text-grey py-8"
@@ -46,9 +56,44 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 
 const notifications = ref([]);
+const connected = ref(false);
+let ws = null;
+let reconnectTimer = null;
+
+const WS_URL =
+  import.meta.env.VITE_NOTIFICATION_WS || "ws://localhost:3003/ws";
+
+function connectWebSocket() {
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    connected.value = true;
+    console.log("WebSocket connected");
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      notifications.value.unshift(data);
+    } catch (e) {
+      console.error("Failed to parse WebSocket message:", e);
+    }
+  };
+
+  ws.onclose = () => {
+    connected.value = false;
+    console.log("WebSocket disconnected, reconnecting in 3s...");
+    reconnectTimer = setTimeout(connectWebSocket, 3000);
+  };
+
+  ws.onerror = (err) => {
+    console.error("WebSocket error:", err);
+    ws.close();
+  };
+}
 
 function formatTime(timestamp) {
   const date = new Date(timestamp);
@@ -62,4 +107,13 @@ function formatTime(timestamp) {
 function clearNotifications() {
   notifications.value = [];
 }
+
+onMounted(() => {
+  connectWebSocket();
+});
+
+onUnmounted(() => {
+  if (reconnectTimer) clearTimeout(reconnectTimer);
+  if (ws) ws.close();
+});
 </script>

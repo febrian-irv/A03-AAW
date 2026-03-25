@@ -38,6 +38,7 @@ curl -X POST http://localhost:3002/api/orders \
 
 docker compose logs notification-service --tail 20
 ```
+<img width="688" height="534" alt="Screenshot 2026-03-25 at 23 55 01" src="https://github.com/user-attachments/assets/2484f322-d90a-4beb-bddb-fbd7771af5d9" />
 
 ## OpenAPI Documentation
 

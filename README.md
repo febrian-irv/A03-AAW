@@ -1,4 +1,4 @@
-Name: Febrian Irvansyah
+Name: Febrian Irvansyah  
 NPM: 2206083584
 
 # suilens-microservice-tutorial
@@ -45,10 +45,10 @@ docker compose logs notification-service --tail 20
 - Order Service: http://localhost:3002/swagger
 - Notification Service: http://localhost:3003/swagger
 
-Dockerhub Swagger
-Notification: https://hub.docker.com/repository/docker/febrianirv/suilens-notification-service/general
-Order: https://hub.docker.com/repository/docker/febrianirv/suilens-order-service
-Catalog: https://hub.docker.com/repository/docker/febrianirv/suilens-catalog-service
+Dockerhub Swagger  
+Notification: https://hub.docker.com/repository/docker/febrianirv/suilens-notification-service/general  
+Order: https://hub.docker.com/repository/docker/febrianirv/suilens-order-service  
+Catalog: https://hub.docker.com/repository/docker/febrianirv/suilens-catalog-service  
 
 ### Catalog Service
 <img width="597" height="824" alt="Screenshot 2026-03-25 at 23 51 01" src="https://github.com/user-attachments/assets/1248effc-bab9-4730-9f94-8988725a5144" />
